@@ -1,36 +1,49 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ЭнергоХранитель</title>
+<div id="lvl">Уровень 1</div>
+<div id="time">30с</div>
+<div id="grid"></div>
+<button id="start">СТАРТ</button>
 <style>
-body{margin:0;font-family:sans-serif;background:#0f2027;color:#fff;
-display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
-#score{font-size:22px;margin:10px}
-#btn{padding:15px 40px;font-size:20px;border:none;border-radius:12px;
-background:#00c853;color:#fff;cursor:pointer;transition:.2s}
-#btn:active{transform:scale(.95)}
-#info{text-align:center;max-width:400px;margin:20px}
+#grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px}
+.item{font-size:40px;padding:20px;border-radius:12px;border:none;
+background:#fff3;cursor:pointer;transition:.1s}
+.item:active{transform:scale(.9)}
 </style>
-</head>
-<body>
-<h1>⚡ ЭнергоХранитель</h1>
-<div id="score">Сэкономлено энергии: 0 кВт·ч</div>
-<button id="btn">ВЫКЛЮЧИТЬ СВЕТ</button>
-<div id="info">Нажимай кнопку, чтобы выключать свет и экономить энергию. Чем быстрее — тем больше экономия!</div>
 <script>
-let saved=0, last=Date.now();
-const btn=document.getElementById('btn');
+let saved=0,time=30,timer,running=false;
+const grid=document.getElementById('grid');
 const scoreEl=document.getElementById('score');
-btn.onclick=()=>{
-  const now=Date.now();
-  const bonus=Math.max(1, Math.floor(2000/(now-last+100)));
-  saved+=bonus;
-  scoreEl.textContent=`Сэкономлено энергии: ${saved} кВт·ч`;
-  btn.style.background = saved>50?'#ffd600':(saved>20?'#00b0ff':'#00c853');
-  last=now;
+const timeEl=document.getElementById('time');
+const items=['💡','📺','☕','🔥'];
+const names=['Свет','Телевизор','Чайник','Обогреватель'];
+
+function spawn(){
+  const i=Math.floor(Math.random()*4);
+  const div=document.createElement('button');
+  div.className='item';
+  div.textContent=items[i];
+  div.title=names[i];
+  div.onclick=()=>{saved+=3;update();div.remove();};
+  grid.appendChild(div);
+  setTimeout(()=>{if(div.parentNode){saved=Math.max(0,saved-5);update();div.remove();}},2000);
+}
+
+function update(){
+  scoreEl.textContent=`⚡ ${saved} кВт·ч`;
+  const lvl=Math.floor(saved/15)+1;
+  document.getElementById('lvl').textContent=`Уровень ${lvl}`;
+}
+
+document.getElementById('start').onclick=()=>{
+  if(running)return;
+  running=true;saved=0;time=30;update();
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    time--;timeEl.textContent=time+'с';
+    if(time%Math.max(1,4-Math.floor(saved/15))===0)spawn();
+    if(time<=0){clearInterval(timer);running=false;
+      alert(`Игра окончена! Ты сэкономил ${saved} кВт·ч 🌱`);}
+  },1000);
+  timeEl.textContent='30с';
 };
 </script>
-</body>
-</html>
+
